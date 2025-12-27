@@ -1,11 +1,3 @@
-################################################################################
-# This file provides the R code used for the analysis of example dataset used 
-# used in the paper:
-#   Interrupted time series regression for the evaluation of public health 
-#     intervention
-################################################################################
-
-
 # Install packages required for the analysis (uncomment if needed)
 install.packages("lmtest") ; install.packages("Epi")
 install.packages("tsModel"); install.packages("vcd")
@@ -48,9 +40,7 @@ post <- monthly_tb[monthly_tb$time >= intervention_time, ]
 fit_pre  <- lm(detection_rate ~ time, data = pre)
 fit_post <- lm(detection_rate ~ time, data = post)
 
- -----------------------------
-# 7. Plot (correct layering)
-# -----------------------------
+
 plot(monthly_tb$time,
      monthly_tb$detection_rate,
      type = "n",
@@ -128,14 +118,6 @@ summary(monthly_tb$detection_rate[monthly_tb$GeneXpect==0])
 summary(monthly_tb$detection_rate[monthly_tb$GeneXpect==1])
 
 
-################################################################################
-#Step 4: Poisson regression model
-#######################################
-# In step 2 (main paper) we chose a step change model and we also used a Poisson
-#   model as we are using count data
-# In order to do this we model the count data directly (rather than the rate
-#   which doesn't follow a Poisson distribution), using the population (log
-#   transformed) as an offset variable in order to transform back to rates
 tb_model <- monthly_tb %>%
   mutate(
     intervention = GeneXpect,
@@ -423,24 +405,14 @@ round(impact_table, 2)
 
 impact_table
 
-
-#b) Model checking and autocorrelation
-
-# Check the residuals by plotting against time
 res2 <- residuals(model2,type="deviance")
 plot(data$time,res2,ylim=c(-5,10),pch=19,cex=0.7,col=grey(0.6),
      main="Residuals over time",ylab="Deviance residuals",xlab="Date")
 abline(h=0,lty=2,lwd=2)
 
-# Further check for autocorrelation by examining the autocorrelation and
-#   partial autocorrelation functions
 acf(res2)
 pacf(res2)
 
-#c) adjusting for seasonality
-# There are various ways of adjusting for seasonality - here we use harmonic
-#   terms specifying the number of sin and cosine pairs to include (in this
-#   case 2) and the length of the period (12 months)
 model3 <- glm(aces ~ offset(log(stdpop)) + smokban + time + 
                 harmonic(month,2,12), family=quasipoisson, data)
 summary(model3)
@@ -453,7 +425,7 @@ ci.lin(model3,Exp=T)["smokban",5:7]
 # TREND
 exp(coef(model3)["time"]*12)
 
-# We again check the model and autocorrelation functions
+
 res3 <- residuals(model3,type="deviance")
 plot(res3,ylim=c(-5,10),pch=19,cex=0.7,col=grey(0.6),main="Residuals over time",
      ylab="Deviance residuals",xlab="Date")
@@ -461,7 +433,7 @@ abline(h=0,lty=2,lwd=2)
 acf(res3)
 pacf(res3)
 
-anova(model3,model4,test="F")
 # not surprisingly, the p-value is similar to that of the interaction term
 
 # 
+
